@@ -155,20 +155,17 @@ export default {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(() => {
-        let resource = this.$resource('clients{/id}')
-        resource.delete({id:row.id}).then((resp) => {
-          let result = resp.body
-          if (result.success) {
-            this.clients.splice(index,1)
+      }).then(async () => {
+        try {
+            await clientRes.delete(row.id)
+            this.clients.splice(index, 1)
             this.$message({
               type: 'success',
               message: '删除成功!'
             });
-          } else {
-            throw '删除客户失败'
-          }
-        })
+        } catch (err) {
+            console.log(err)
+        }
       })
     },
     handleCreate() {
@@ -181,13 +178,11 @@ export default {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
-        }).then(() => {
-          let resource = this.$resource('clients')
-          resource.delete({}, this.multipleSelection.map((item) => {
-            return item.id
-          })).then((resp) => {
-            let result = resp.body
-            if (result.success) {
+        }).then(async () => {
+            try {
+              await clientRes.delete(this.multipleSelection.map((item) => {
+                return item.id
+              }))
               this.multipleSelection.forEach((item) => {
                 let index = this.clients.indexOf(item)
                 this.clients.splice(index, 1)
@@ -196,12 +191,9 @@ export default {
                 type: 'success',
                 message: '删除成功!'
               });
-            } else {
-              console.log(result.error)
+            } catch (err) {
+                console.log(err)
             }
-          }).catch((err) => {
-            console.log(err)
-          })
         })
       } else {
         this.$alert('未选中客户', '删除客户', {
@@ -216,18 +208,15 @@ export default {
     confirmDialog() {
       this.$refs.clientForm.validate(async (valid) => {
         if (valid) {
-          let resource = this.$resource('clients{/id}')
           if (this.dialogTitle.indexOf('编辑') >= 0) {
-            resource.update({id:this.client.id}, this.client).then((resp) => {
-              let result = resp.body
-              if (result.success) {
-                this.dialogFormVisible = false
-//                Vue.set(this.clients, this.client.index, result.data)
-                this.$refs.clientForm.resetFields()
-              } else {
-                console.log(result.error)
+              try {
+                  let client = await clientRes.update(this.client.id, this.client)
+                  this.dialogFormVisible = false
+                  Vue.set(this.clients, this.client.index, client)
+                  this.$refs.clientForm.resetFields()
+              } catch (err) {
+                  console.log(err)
               }
-            })
           } else {
               try {
                   let client = await clientRes.save(this.client)
@@ -237,18 +226,6 @@ export default {
               } catch(err) {
                   console.log(result.error)
               }
-//            resource.save(this.client).then((resp) => {
-//              let result = resp.body
-//              if (result.success) {
-//                this.dialogFormVisible = false
-//                this.clients.push(result.data)
-//                this.$refs.clientForm.resetFields()
-//              } else {
-//                console.log(result.error)
-//              }
-//            }).catch((err) => {
-//              console.log(err)
-//            })
           }
         } else {
           console.log('表单验证没有通过')

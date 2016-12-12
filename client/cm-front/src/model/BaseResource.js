@@ -25,6 +25,18 @@ class BaseResource {
   update(id, data) {
     return transPromise(this.res.update({id:id}, data))
   }
+
+  delete() {
+    if (arguments.length === 1) {
+      if (typeof arguments[0] === 'number') {
+        return transPromise(this.res.delete({id:arguments[0]}))
+      } else {
+        return transPromise(this.res.delete({}, arguments[0]))
+      }
+    } else {
+      throw new Error(`delete方法参数个数不正确，必须为一个,实际为${arguments.length}个`)
+    }
+  }
 }
 
 function transPromise(promise) {
